@@ -10,13 +10,8 @@ program
 
 program
     .usage('<command> [option]')
-    .command('env <action>', 'handlers of environment', { executableFile: 'env' }).alias('e')
-    .command('code <type>', 'create a type of code automatically', { executableFile: 'code' }).alias('c')
-    .command('test <type>')
-    .description('test function')
-    .action((a, b, c) => {
-        console.log(a, b, c);
-    });
+    .command('env <action>', 'handlers of environment').alias('e')
+    .command('code <type>', 'create a type of code automatically').alias('c')
 
 // 丰富帮助信息
 program.on('--help', () => {
