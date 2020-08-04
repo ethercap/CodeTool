@@ -1,0 +1,22 @@
+{
+  "name": "codetool",
+  "version": "0.0.1",
+  "description": "",
+  "main": "./src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "ct": "./src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ethercap/CodeTool.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ethercap/CodeTool/issues"
+  },
+  "homepage": "https://github.com/ethercap/CodeTool#readme"
+}
