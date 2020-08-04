@@ -1,7 +1,7 @@
 {
   "name": "codetool",
   "version": "0.0.1",
-  "description": "",
+  "description": "Ethercap code tool",
   "main": "./src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/ethercap/CodeTool/issues"
   },
-  "homepage": "https://github.com/ethercap/CodeTool#readme"
+  "homepage": "https://github.com/ethercap/CodeTool#readme",
+  "devDependencies": {
+    "commander": "^6.0.0"
+  }
 }
