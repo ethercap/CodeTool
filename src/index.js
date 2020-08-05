@@ -9,7 +9,7 @@ program
     .description(description);
 
 program
-    .usage('<command> [option]')
+    .usage('<command> <action> [option]')
     .command('env <action>', 'handlers of environment').alias('e')
     .command('code <type>', 'create a type of code automatically').alias('c')
 
@@ -18,6 +18,7 @@ program.on('--help', () => {
     console.log('');
     console.log('Example call:');
     console.log('  $ ct env init');
+    console.log('  $ ct env run');
 });
 
 program.parse(process.argv);

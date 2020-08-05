@@ -1,0 +1,4 @@
+.sync-config.cson
+node_modules
+.DS_Store
+/dist

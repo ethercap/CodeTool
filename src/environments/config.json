@@ -1,0 +1,11 @@
+{
+    "dev": {
+        "name" : "Development Environment"
+    },
+    "staging": {
+        "name": "Staging Environment"
+    },
+    "prod": {
+        "name" : "Production Environment"
+    }
+}
