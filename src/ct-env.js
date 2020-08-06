@@ -69,7 +69,7 @@ async function run() {
     const config = fs.readFileSync(configFile).toString();
     const envs = Object.keys(JSON.parse(config));
     let envResult = await inquirer.prompt([{
-        type: 'list',
+        type: 'rawlist',
         name: 'env',
         message: _getMessage('envNameQuestion'),
         choices: envs
