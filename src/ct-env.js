@@ -2,6 +2,7 @@
 
 const { Command } = require('commander');
 const fs = require('fs');
+const fse = require('fs-extra');
 const child_process = require('child_process');
 const path = require('path');
 const chalk = require('chalk');
@@ -36,7 +37,7 @@ program
 
 program.parse(process.argv);
 
-// 以下是被调用的函数
+// 初始化命令
 function init() {
     _printSucess('startText', version);
     const originEnvPath = path.join(__dirname, 'environments');
@@ -56,29 +57,24 @@ function init() {
     _copyFile(configFile, path.join(projectEnvPath, 'config.json'));
 }
 
-function run() {
+// 切换环境命令
+async function run() {
     _printSucess('startText', version);
     const projectRoot = path.resolve('./');
     const projectEnvPath = path.join(projectRoot, 'environments');
     const configFile = path.join(projectEnvPath, 'config.json');
     const config = fs.readFileSync(configFile).toString();
     const envs = Object.keys(JSON.parse(config));
-    inquirer.prompt([{
+    let envResult = await inquirer.prompt([{
         type: 'list',
         name: 'env',
         message: _getMessage('envNameQuestion'),
         choices: envs
-    }]).then(result => {
-        console.log(1, result.env);
-    });
-    // _printSucess('startText', version);
-}
-
-function _copyFolder(copiedPath, resultPath) {
-    if (fs.existsSync(copiedPath)) {
-        child_process.spawn('cp', ['-r', copiedPath, resultPath]);
-    } else {
-        console.log('do not exist path: ', copiedPath);
+    }]);
+    const srcFolder = path.join(projectEnvPath, envResult.env);
+    const fileList = _getFileList(srcFolder);
+    for (let file of fileList) {
+        await _copyFile(path.join(srcFolder, file), path.join(projectRoot, file));
     }
 }
 
@@ -131,9 +127,27 @@ function _copyFile(src, dest) {
             return flag;
         });
     }
-    // 文件不存在时直接拷贝
-    fs.copyFileSync(src, dest);
+    // 文件不存在时直接拷贝 这里使用了fse是因为当dest路径不存在时fse可以自动创建路径
+    fse.copySync(src, dest);
+    _printSucess('fileGenerate', dest);
     return true;
+}
+
+// 遍历获取文件列表
+function _getFileList(src, father = '') {
+    let files = fs.readdirSync(src);
+    files = files.map(file => {
+        let filePath = path.join(src, file);
+        let fileInfo = fs.statSync(filePath);
+        if (fileInfo.isDirectory()) return _getFileList(filePath, father + file + '/');
+        return father + file;
+    });
+
+    function flatDeep(arr, d = 1) {
+        return d > 0 ? arr.reduce((acc, val) => acc.concat(Array.isArray(val) ? flatDeep(val, d - 1) : val), []) :
+            arr.slice();
+    };
+    return flatDeep(files, Infinity);
 }
 
 // 各个打印函数
@@ -151,7 +165,7 @@ function _printDanger(type, args) {
     const text = _getMessage(type, args);
     return console.log(chalk.red(text));
 }
-// 获取信息
+// 获取提示信息
 function _getMessage(type, args) {
     const reg = /%s/ig;
     const types = Object.keys(message);
