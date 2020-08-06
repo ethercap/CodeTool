@@ -22,6 +22,7 @@ const message = {
     fileERR: "can't open the file %s",
 };
 let ifOverwrite = false;
+let ifQuit = false;
 
 program
     .name('ct env')
@@ -51,7 +52,9 @@ function init() {
         const config = fs.readFileSync(configFile).toString();
         const envs = Object.keys(JSON.parse(config));
         for (let env of envs) {
-            fs.mkdirSync(path.join(projectEnvPath, env));
+            env = path.join(projectEnvPath, env);
+            fs.mkdirSync(env);
+            _printSucess('fileGenerate', env);
         }
     }
     _copyFile(configFile, path.join(projectEnvPath, 'config.json'));
@@ -78,8 +81,15 @@ async function run() {
     }
 }
 
-// 拷贝单个文件
-function _copyFile(src, dest) {
+/**
+ * 拷贝单个文件
+ * params src  源文件
+ * params dest 目标文件
+ * return promise
+ * promise.then(data => data) 验证拷贝是否成功
+ */
+async function _copyFile(src, dest) {
+    if (ifQuit) return false;
     if (!fs.existsSync(src)) return _printDanger(fileERR, src);
     const str1 = fs.readFileSync(src).toString();
     // 文件已存在时候的判断
@@ -98,34 +108,33 @@ function _copyFile(src, dest) {
         }
         if (ifOverwrite) return overwrite();
         // 内容不同询问
-        return inquirer.prompt([{
+        let overwriteResult = await inquirer.prompt([{
             type: 'list',
             name: 'ifOverwrite',
             message: _getMessage('fileOverwriteQuestion', dest),
             choices: ['Yes', 'No', 'Quit', 'All']
-        }]).then(result => {
-            let flag = false;
-            switch (result.ifOverwrite) {
-                case 'Yes':
-                    flag = overwrite();
-                    break;
-                case 'No':
-                    flag = true;
-                    _printNormal("fileSkiped", dest);
-                    break;
-                case 'Quit':
-                    flag = false;
-                    _printNormal("fileSkiped", dest);
-                    break;
-                case 'All':
-                    ifOverwrite = true;
-                    flag = overwrite();
-                    break;
-                default:
-                    break;
-            }
-            return flag;
-        });
+        }]);
+        let flag = false;
+        switch (overwriteResult.ifOverwrite) {
+            case 'Yes':
+                flag = overwrite();
+                break;
+            case 'No':
+                flag = true;
+                _printNormal("fileSkiped", dest);
+                break;
+            case 'Quit':
+                flag = false;
+                ifQuit = true;
+                break;
+            case 'All':
+                ifOverwrite = true;
+                flag = overwrite();
+                break;
+            default:
+                break;
+        }
+        return flag;
     }
     // 文件不存在时直接拷贝 这里使用了fse是因为当dest路径不存在时fse可以自动创建路径
     fse.copySync(src, dest);
@@ -142,7 +151,7 @@ function _getFileList(src, father = '') {
         if (fileInfo.isDirectory()) return _getFileList(filePath, father + file + '/');
         return father + file;
     });
-
+    // flat方法在node环境下的兼容性有问题
     function flatDeep(arr, d = 1) {
         return d > 0 ? arr.reduce((acc, val) => acc.concat(Array.isArray(val) ? flatDeep(val, d - 1) : val), []) :
             arr.slice();
